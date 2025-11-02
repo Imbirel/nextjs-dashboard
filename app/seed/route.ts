@@ -101,14 +101,25 @@ async function seedRevenue() {
   return insertedRevenue;
 }
 
+async function clearExistingData() {
+  await sql`DELETE FROM invoices`;
+  await sql`DELETE FROM revenue`;
+  await sql`DELETE FROM customers`;
+  await sql`DELETE FROM users`;
+}
+
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
-    ]);
+    const result = await sql.begin(async (sql) => {
+      await clearExistingData();
+      
+      return [
+        await seedUsers(),
+        await seedCustomers(),
+        await seedInvoices(),
+        await seedRevenue(),
+      ];
+    });
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
